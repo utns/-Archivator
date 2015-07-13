@@ -10,6 +10,36 @@ using namespace std;
 vector <vector <int >> c_branch;
 vector <char> symbols;
 
+Treeptr print_letter(int current_bit, Treeptr buf_node, Treeptr root, FILE* out) {
+	if (current_bit == 0)//TODO: new function for out 
+	{
+		if (buf_node->left != NULL)
+		{
+			buf_node = buf_node->left;
+		}
+		else {
+			//Error! Work On!
+		}
+	}
+	else
+		if (current_bit == 1)
+		{
+			if (buf_node->right != NULL)
+			{
+				buf_node = buf_node->right;
+			}
+			else {
+				//Error! Work On!
+			}
+		}
+	if (buf_node->key != -1)
+	{
+		fprintf(out, "%c", buf_node->key);
+		buf_node = root;
+	}
+	return buf_node;
+}
+
 int unpacke(string input_file, string output_file) {
 	FILE* in;
 	FILE* out;	
@@ -100,32 +130,7 @@ int unpacke(string input_file, string output_file) {
 			buf = current_byte;
 			buf = buf >> 8 - (j + 1);
 			current_bit = buf & 1;
-			if (current_bit == 0)//TODO: new function for out 
-			{
-				if (buf_node->left != NULL)
-				{
-					buf_node = buf_node->left;
-				}
-				else {
-					//Error! Work On!
-				}
-			}
-			else
-				if (current_bit == 1)
-				{
-					if (buf_node->right != NULL)
-					{
-						buf_node = buf_node->right;
-					}
-					else {
-						//Error! Work On!
-					}
-				}
-			if (buf_node->key != -1)
-			{
-				fprintf(out, "%c", buf_node->key);
-				buf_node = root;
-			}			
+			buf_node = print_letter(current_bit, buf_node, root, out);
 		}		
 	}
 	fscanf(in, "%c", &current_byte);
@@ -133,33 +138,8 @@ int unpacke(string input_file, string output_file) {
 	for (int j = 0; j < last_byte_count; j++) {
 		buf = current_byte;
 		buf = buf >> 8 - (j + 1);
-		current_bit = buf & 1;		
-		if (current_bit == 0)//TODO: new function for out 
-		{
-			if (buf_node->left != NULL)
-			{
-				buf_node = buf_node->left;
-			}
-			else {
-				//Error! Work On!
-			}
-		}
-		else
-			if (current_bit == 1)
-			{
-				if (buf_node->right != NULL)
-				{
-					buf_node = buf_node->right;
-				}
-				else {
-					//Error! Work On!
-				}
-			}
-		if (buf_node->key != -1)
-		{
-			fprintf(out, "%c", buf_node->key);
-			buf_node = root;
-		}
+		current_bit = buf & 1;	
+		buf_node = print_letter(current_bit, buf_node, root, out); //It seems program breaks on last byte
 	}
 	return 0;
 }
