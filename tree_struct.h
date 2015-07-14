@@ -3,7 +3,8 @@
 typedef struct tnode *Treeptr;
 
 typedef struct tnode {
-	char key;
+	unsigned char key;
+	bool sheet;
 	int	count;
 	struct tnode *left;
 	struct tnode *right;
