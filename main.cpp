@@ -10,8 +10,12 @@
 using namespace std;
 
 int main(int argc, char *argv[])  {	
-	string input_file(""), command(""), output_file("");
-	//input_file = "input.bin";	
+	/*TEST CODE BEGIN*/
+	//unpacke("", "");
+	//archive("", "");
+	//return 0;
+	/*TEST CODE END*/
+	string input_file(""), command(""), output_file("");	
 	if (argc == 1) {
 		cout << "   -Archivator" << endl;
 		cout << "   Utin Nikita, Andrey Machlyarchuk" << endl << "Launch options: " << endl;
@@ -24,17 +28,28 @@ int main(int argc, char *argv[])  {
 		return 0;
 	}
 	if (argc == 4) {
+		//cout << argv[2] << endl;
+		//cout << argv[3] << endl;
 		input_file = argv[2];
 		command = argv[1];
 		output_file = argv[3];		
 	}
 	if (command == "-a") {
+		int result = archive(input_file, output_file);
+		if (result == BAD_FILE_NAME) {
+			//cout << "Input file not found";    arch.exe  -x <input.txt
+			return 0;
+		}
 		cout << "archive" << endl;
 		cout << "input file '" << input_file << "'" << endl;
-		cout << "output file '" << output_file << "'" << endl;
-		archive(input_file, output_file);
+		cout << "output file '" << output_file << "'" << endl;		
 	} else 
 	if (command == "-x") {
+		int result = unpacke(input_file, output_file);
+		if (result == BAD_FILE_NAME) {
+			cout << "Input file not found";
+			return 0;
+		}
 		cout << "unpack" << endl;
 		cout << "input file '" << input_file << "'" << endl;
 		cout << "output file '" << output_file << "'" << endl;		
@@ -44,6 +59,6 @@ int main(int argc, char *argv[])  {
 	else {
 		cout << "'" << command << "'" << " unknown comand";
 	}
-	//TODO checking for file opening
+	//TODO checking for file opening	
 	return 0;	
 }
