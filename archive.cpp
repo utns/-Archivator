@@ -47,7 +47,7 @@ int treewalk(Treeptr t, int d, FILE *output)
 		if (t->sheet)
 		{
 			//fprintf(output, "%c", t->key);
-			cout << t->key << " " << nodes[t->key]->count << " " << d << " ";
+//			cout << t->key << " " << nodes[t->key]->count << " " << d << " ";
 			unsigned char a[4];
 			for (int i = 0; i < 4; ++i)
 			{
@@ -59,17 +59,17 @@ int treewalk(Treeptr t, int d, FILE *output)
 				{
 					a[i / 8] = a[i / 8] | b[i % 8];
 				}
-				cout << ans[i];
+//				cout << ans[i];
 			}
 			//fprintf(output, "%c%", d);
 //			a_symbols[t->key].code = a;
 			for (int i = 0; i < 4; ++i)
 			{
-				printf(" %d: %d ", i, a[i]);
+//				printf(" %d: %d ", i, a[i]);
 				//cout << i << ": " << a[i] << " ";
 				a_symbols[t->key].code[i] = a[i];
 			}
-			cout << " | "<< endl;
+//			cout << " | "<< endl;
 			a_symbols[t->key].len = d;
 			return 0;
 		}
@@ -129,8 +129,6 @@ int archive(string input_file, string output_file)
 {
 	FILE *input = fopen(file_name(input_file), "rb");
 	FILE *output = fopen(file_name(output_file), "wb");
-	//
-	//print_byte(188, output);
 	fseek(input, 0, SEEK_END);
 	int count = ftell(input);
 	fseek(input, 0, SEEK_SET);
@@ -140,12 +138,11 @@ int archive(string input_file, string output_file)
 		nodes[i] = new_node(i, true, 0);
 	}
 	unsigned char c_in;
-	cout << count << endl;
+//	cout << count << endl;
 	for (int i = 0; i < count; ++i)
 	{
 		fscanf(input, "%c", &c_in);
 		++nodes[c_in]->count;
-		//printf("|||||%d ||||", c_in);
 	}
 
 
@@ -188,7 +185,7 @@ int archive(string input_file, string output_file)
 	{
 		fprintf(output, "%c", a_symbols[i].len);
 	}
-	int all_count = 0;
+	//int all_count = 0;
 	/*for (int i = 0; i < 256; ++i)
 	{
 		all_count += (symbols[i].len * nodes[i]->count);
@@ -199,13 +196,13 @@ int archive(string input_file, string output_file)
 	int c_len = 0;
 
 	//////
-		a_symbols[98].code[0] =  255;
+		/*a_symbols[98].code[0] =  255;
 		a_symbols[98].code[1] = 125;
 		a_symbols[98].len = 15;
 		a_symbols[101].code[0] =  255;
 		a_symbols[101].code[1] = 1;
 		a_symbols[101].len = 16;
-		count = 2;
+		count = 2;*/
 	//////
 
 	for (int i = 0; i < count; ++i)
