@@ -19,6 +19,19 @@ class symbol
 	public:
 		unsigned int code[4];
 		int len;
+		int len_byte(int i)
+		{
+			if (len - 8 *(i + 1) > 0)
+			{
+				//cout << i << "=8 ";
+				return 8;
+			}
+			else
+			{
+				//cout << i << "=" <<  8 + (len - 8 *(i + 1)) << " ";
+				return 8 + (len - 8 *(i + 1));
+			}
+		}
 };
 
 int ans[256];
@@ -75,22 +88,22 @@ bool compare(Treeptr a, Treeptr b)
 {
 	if (a->count == b->count)
 	{
-		if (a->key != -1 && b->key != -1)
+		if (a->sheet && b->sheet)
 		{
-			return (a->key > b->key); //>
+			return (a->key > b->key);
 		}
-		if (a->key == -1)
+		if (!a->sheet && b->sheet)
 		{
-			return (true); //>
+			return (true);
 		}
-		if (b->key == -1)
+		if (!b->sheet && a->sheet)
 		{
-			return (false); //>
+			return (false);
 		}
-//		else
-//		{
-//			return (a->key > b->key);
-//		}
+		if (!b->sheet && !a->sheet)
+		{
+			return (a->tree_count > b->tree_count);
+		}
 	}
 	else
 	{
@@ -110,47 +123,7 @@ unsigned char Invert(unsigned char x)
 	}
 	return res;
 }
-int print_byte(unsigned char c, FILE *output)
-{
 
-	/*bool b1, b2;
-	for (int i = 0; i < 4; ++i)
-	{
-		b1 = c & b[i];
-		b2 = c & b[7 - i];
-		if (b1)
-		{
-			if (!b2)
-			{
-				c = c + b[7 - i];
-			}
-
-		}
-		else
-		{
-			if (b2)
-			{
-				c = c - b[7 - i];
-			}
-		}
-		if (b2)
-		{
-			if (!b1)
-			{
-				c = c + b[i];
-			}
-		}
-		else
-		{
-			if (b1)
-			{
-				c = c - b[i];
-			}
-		}
-	}*/
-	fprintf(output, "%c", c);
-	return 0;
-}
 
 int archive(string input_file, string output_file)
 {
@@ -164,7 +137,7 @@ int archive(string input_file, string output_file)
 
 	for (int i = 0; i < 256; ++i)
 	{
-		nodes[i] = new_node(i, true);
+		nodes[i] = new_node(i, true, 0);
 	}
 	unsigned char c_in;
 	cout << count << endl;
@@ -187,20 +160,20 @@ int archive(string input_file, string output_file)
 			++count_nodes;
 		}
 	}
-//	cout << "KKKKK";
 //	while (pq.size() > 0)
 //	{
 //		cout << pq.top()->key;
 //		pq.pop();
 //	}
 //	cout << endl;
+	int com_tree_count = 0;
 	while (pq.size() > 1)
 	{
 		Treeptr n1 = pq.top();
 		pq.pop();
 		Treeptr n2 = pq.top();
 		pq.pop();
-		Treeptr t = new_node(0, false);
+		Treeptr t = new_node(0, false, ++com_tree_count);
 		t->left = n1;
 		t->right = n2;
 		t->count = n1->count + n2->count;
@@ -213,10 +186,8 @@ int archive(string input_file, string output_file)
 	treewalk(root, 0, output);
 	for (int i = 0; i < 256; ++i)
 	{
-		fprintf(output, "%c", nodes[i]->count);
+		fprintf(output, "%c", a_symbols[i].len);
 	}
-
-	fprintf(output, "%c%c%c", 255, 255, 255);
 	int all_count = 0;
 	/*for (int i = 0; i < 256; ++i)
 	{
@@ -228,11 +199,13 @@ int archive(string input_file, string output_file)
 	int c_len = 0;
 
 	//////
-		/*a_symbols[101].code =  32765;
-		a_symbols[101].len = 15;
-		a_symbols[98].code = 65281;
-		a_symbols[98].len = 16;
-		count = 2;*/
+		a_symbols[98].code[0] =  255;
+		a_symbols[98].code[1] = 125;
+		a_symbols[98].len = 15;
+		a_symbols[101].code[0] =  255;
+		a_symbols[101].code[1] = 1;
+		a_symbols[101].len = 16;
+		count = 2;
 	//////
 
 	for (int i = 0; i < count; ++i)
@@ -241,47 +214,44 @@ int archive(string input_file, string output_file)
 		{
 			fscanf(input, "%c", &c_in);
 		}
-		/*int len_out =  0;//a_symbols[c_in].len;
-		while (len_out != a_symbols[c_in].len)
+		int byte_count;
+		if (a_symbols[c_in].len % 8 == 0)
 		{
-			c_out = c_out | ((a_symbols[c_in].code << len_out) >> c_len);
-			c_len += (a_symbols[c_in].len - len_out - c_len) % 8 + 1;
-			len_out += a_symbols[c_in].len - len_out - c_len;
-			if (c_len == 8)
+			byte_count = a_symbols[c_in].len / 8;
+		}
+		else
+		{
+			byte_count = a_symbols[c_in].len / 8 + 1;
+		}
+		for (int i = 0; i < byte_count; ++i)
+		{
+			c_out = c_out | (a_symbols[c_in].code[i] >> c_len);
+			c_len += a_symbols[c_in].len_byte(i);
+			if (c_len >= 8)
 			{
-				fprintf(output, "%c", c_out);
+	//			print_byte(c_out, output);
+				fprintf(output, "%c", Invert(c_out));
+				//printf(" |%d| ", c_out);
 				c_out = 0;
+				if (c_len > 8)
+				{
+					c_out = c_out | (a_symbols[c_in].code[i] << (a_symbols[c_in].len_byte(i) - (c_len - 8)));
+					c_len -= 8;
+				}
+				if (c_len == 8)
+				{
+					c_len = 0;
+				}
 			}
-		}*/
-		/*c_out = c_out | (a_symbols[c_in].code >> c_len);
-		c_len += a_symbols[c_in].len;
-		if (c_len >= 8)
-		{
-//			print_byte(c_out, output);
-			fprintf(output, "%c", Invert(c_out));
-			c_out = 0;
-			if (c_len > 8)
-			{
-				c_out = c_out | (a_symbols[c_in].code << (a_symbols[c_in].len - (c_len - 8)));
-				c_len -= 8;
-			}
-			if (c_len == 8)
-			{
-				c_len = 0;
-			}
-		}*/
+		}
 	}
 	if (c_len != 0)
 	{
 //		print_byte(c_out, output);
 		fprintf(output, "%c", Invert(c_out));
+		//printf(" |%d| ", c_out);
 	}
-//	else
-//	{
-////		print_byte(c_out, output);
-//		fprintf(output, "%c", 8);
-//	}
-//	fprintf(output, "%c", c_len);
+	fclose(output);
 	return 0;
 }
 

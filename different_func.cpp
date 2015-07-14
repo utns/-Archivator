@@ -2,11 +2,23 @@
 #include "differeent func.h"
 
 
+Treeptr new_node(char key, bool sheet, int tree_count) {
+	Treeptr node = (Treeptr)malloc(sizeof(Treenode));
+	node->sheet = sheet;
+	node->key = key;
+	node->count = 0;
+	node->tree_count = tree_count;
+	node->left = NULL;
+	node->right = NULL;
+	return node;
+}
+
 Treeptr new_node(char key, bool sheet) {
 	Treeptr node = (Treeptr)malloc(sizeof(Treenode));
 	node->sheet = sheet;
 	node->key = key;
 	node->count = 0;
+	node->tree_count = 0;
 	node->left = NULL;
 	node->right = NULL;
 	return node;
