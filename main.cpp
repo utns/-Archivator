@@ -82,18 +82,14 @@ int read_head(string input_file) {
 
 int archive_all_files()
 {
-//	vector <string> input_file_names;
 	vector <long int> FAT_offset;
-//	input_files.push_back("asfdasf");
 	FILE *output = fopen(file_name(output_file), "wb");
-	//FILE *output = fopen(file_name(output_file), "wb");
 	fprintf(output, "UPA");
 	fprintf(output, "HUFF");
 	bool is_solid = false;
 	fwrite(&is_solid, sizeof(is_solid), 1, output);
 	unsigned short int input_files_count = input_file_names.size();
 	fwrite(&input_files_count, sizeof(input_files_count), 1, output);
-	//fprintf(output, "%c", 255);
 	for (size_t i = 0; i < input_file_names.size(); ++i)
 	{
 		unsigned char fn_len = input_file_names[i].size() - 1;
@@ -104,20 +100,19 @@ int archive_all_files()
 		}
 		FAT_offset.push_back(ftell(output));
 		fseek(output, 2 * sizeof(unsigned long long int), SEEK_CUR);
-//		char *input_file_name = file_name(input_files[i]);
-//		fwrite(&input_file_name, sizeof(input_files[i]), 1, output);
 	}
 	for (size_t i = 0; i < input_file_names.size(); ++i)
 	{
 		unsigned long long int packsize, origsize;
-		archive(input_file_names[i], output, &packsize, &origsize);
+		if (archive(input_file_names[i], output, &packsize, &origsize) == -1)
+		{
+			break;
+		}
 		long int cur_offset = ftell(output);
 		fseek(output, FAT_offset[i], SEEK_SET);
 		fwrite(&packsize, sizeof(packsize), 1, output);
 		fwrite(&origsize, sizeof(origsize), 1, output);
 		fseek(output, cur_offset, SEEK_SET);
-//		char *input_file_name = file_name(input_files[i]);
-//		fwrite(&input_file_name, sizeof(input_files[i]), 1, output);
 	}
 	fclose(output);
 	return 0;

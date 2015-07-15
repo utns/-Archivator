@@ -46,7 +46,14 @@ int treewalk(Treeptr t, int d, FILE *output)
 		if (t->sheet)
 		{
 			b_symbols.push_back(letter(d, t->key));
-			a_symbols[t->key].len = d;
+			if (d == 0)
+			{
+				a_symbols[t->key].len = 1;
+			}
+			else
+			{
+				a_symbols[t->key].len = d;
+			}
 			return 0;
 		}
 		treewalk(t->left, ++d, output);
@@ -109,6 +116,11 @@ int archive(string input_file, FILE *output, unsigned long long int *packsize, u
 	code_table.clear();
 	b_symbols.clear();
 	FILE *input = fopen(file_name(input_file), "rb");
+	if (input == NULL)
+	{
+		cout << "File '" << input_file << "' not found." << endl;
+		return -1;
+	}
 	fseek(input, 0, SEEK_END);
 	long int count = ftell(input);
 	*origsize = (unsigned long long int)count;
