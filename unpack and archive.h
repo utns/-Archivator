@@ -6,4 +6,4 @@
 using namespace std;
 
 int unpacke(string input_file, string output_file);
-int archive(string input_file, string output_file);
+int archive(string input_file, FILE *output, unsigned long long int *packsize, unsigned long long int *origsize);

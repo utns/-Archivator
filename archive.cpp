@@ -52,7 +52,6 @@ bool l_compare(letter i, letter j) {
 	return (i.code_length < j.code_length);
 }
 
-int ans[256];
 Treeptr nodes[256];
 symbol a_symbols[256];
 vector <int> code_table;
@@ -68,37 +67,10 @@ int treewalk(Treeptr t, int d, FILE *output)
 		{
 			b_symbols.push_back(letter(d, t->key));
 			a_symbols[t->key].len = d;
-			//fprintf(output, "%c", t->key);
-			//cout << t->key << " " << nodes[t->key]->count << " " << d << " ";
-//			unsigned char a[4];
-//			for (int i = 0; i < 4; ++i)
-//			{
-//				a[i] = 0;
-//			}
-//			for (int i = 0; i < d; ++i)
-//			{
-//				if (ans[i])
-//				{
-//					a[i / 8] = a[i / 8] | b[i % 8];
-//				}
-//				cout << ans[i];
-//			}
-			//fprintf(output, "%c%", d);
-//			a_symbols[t->key].code = a;
-//			for (int i = 0; i < 4; ++i)
-//			{
-////				printf(" %d: %d ", i, a[i]);
-//				cout << i << ": " << a[i] << " ";
-//				//a_symbols[t->key].code[i] = a[i];
-//			}
-//			cout << " | "<< endl;
-			//a_symbols[t->key].len = d;
 			return 0;
 		}
-		ans[d] = 0;
 		treewalk(t->left, ++d, output);
 		--d;
-		ans[d] = 1;
 		treewalk(t->right, ++d, output);
 		--d;
 	}
@@ -147,28 +119,31 @@ unsigned char Invert(unsigned char x)
 	return res;
 }
 
-int archive(string input_file, string output_file)
+int archive(string input_file, FILE *output, unsigned long long int *packsize, unsigned long long int *origsize)
 {
+	for (int i = 0; i < 256; ++i)
+	{
+		a_symbols[i].code = 0;
+		a_symbols[i].len = 0;
+	}
+	code_table.clear();
+	b_symbols.clear();
 	FILE *input = fopen(file_name(input_file), "rb");
-//	fstream output2(file_name(output_file), fstream::out | fstream::binary);
 	fseek(input, 0, SEEK_END);
-	int count = ftell(input);
+	long int count = ftell(input);
+	*origsize = (unsigned long long int)count;
 	fseek(input, 0, SEEK_SET);
-//	output2.write((const char*)&count, 4);
-//	output2.close();
-	FILE *output = fopen(file_name(output_file), "wb");
+	*packsize = 0;
 	for (int i = 0; i < 256; ++i)
 	{
 		nodes[i] = new_node(i, true, 0);
 	}
 	unsigned char c_in;
-//	cout << count << endl;
 	for (int i = 0; i < count; ++i)
 	{
 		fscanf(input, "%c", &c_in);
 		++nodes[c_in]->count;
 	}
-
 
 	priority_queue<Treeptr, vector<Treeptr>, comp> pq(compare);
 	unsigned char count_nodes = 0;
@@ -180,12 +155,6 @@ int archive(string input_file, string output_file)
 			++count_nodes;
 		}
 	}
-//	while (pq.size() > 0)
-//	{
-//		cout << pq.top()->key;
-//		pq.pop();
-//	}
-//	cout << endl;
 	int com_tree_count = 0;
 	while (pq.size() > 1)
 	{
@@ -201,13 +170,9 @@ int archive(string input_file, string output_file)
 	}
 
 	Treeptr root = pq.top();
-	//fprintf(output, "-Arh");
-	//fprintf(output, "%c", count_nodes - 1);
 	treewalk(root, 0, output);
 
 	sort(b_symbols.begin(), b_symbols.end(), l_compare);
-	//code_table.resize(b_symbols.size());
-	//code_table[0] = 0;
 	a_symbols[b_symbols[0].character].code = 0;
 	int last_length = b_symbols[0].code_length, last_code = 0;
 	for (int l = 1; l < b_symbols.size(); l++) {
@@ -216,39 +181,25 @@ int archive(string input_file, string output_file)
 			new_code = last_code + 1;
 		}
 		else {
-			new_code = (last_code + 1) << 1;
+			new_code = (last_code + 1) << (b_symbols[l].code_length - last_length);
 		}
 		a_symbols[b_symbols[l].character].code = new_code << (32 - b_symbols[l].code_length);
 		last_code = new_code;
 		last_length = b_symbols[l].code_length;
 	}
-	for (int i = 0; i < 256; ++i)
-	{
-		printf("%c: %d %08X\n", i, a_symbols[i].len, a_symbols[i].code);
-	}
+//	for (int i = 0; i < 256; ++i)
+//	{
+//		if (a_symbols[i].len > 0) {
+//			printf("%c: %d %ud\n", i, a_symbols[i].len, a_symbols[i].code);
+//		}
+//	}
 	for (int i = 0; i < 256; ++i)
 	{
 		fprintf(output, "%c", a_symbols[i].len);
 	}
-	//int all_count = 0;
-	/*for (int i = 0; i < 256; ++i)
-	{
-		all_count += (symbols[i].len * nodes[i]->count);
-	}
-	fprintf(output, "%c", all_count % 8);*/
 	fseek(input, 0, SEEK_SET);
 	unsigned char c_out = 0;
 	int c_len = 0;
-
-	//////
-		/*a_symbols[98].code[0] =  255;
-		a_symbols[98].code[1] = 125;
-		a_symbols[98].len = 15;
-		a_symbols[101].code[0] =  255;
-		a_symbols[101].code[1] = 1;
-		a_symbols[101].len = 16;
-		count = 2;*/
-	//////
 
 	for (int i = 0; i < count; ++i)
 	{
@@ -274,7 +225,7 @@ int archive(string input_file, string output_file)
 			if (c_len >= 8)
 			{
 				fprintf(output, "%c", Invert(c_out));
-				//printf(" |%d| ", c_out);
+				(*packsize)++;
 				c_out = 0;
 				if (c_len > 8)
 				{
@@ -291,9 +242,8 @@ int archive(string input_file, string output_file)
 	if (c_len != 0)
 	{
 		fprintf(output, "%c", Invert(c_out));
-		//printf(" |%d| ", c_out);
+		(*packsize)++;
 	}
-	fclose(output);
 	return 0;
 }
 
