@@ -1,5 +1,7 @@
 #pragma once;
 #include <string>
+#define BAD_FILE_NAME -1
+#define SIGNATURE -Arh
 
 using namespace std;
 

@@ -9,13 +9,14 @@
 using namespace std;
 
 vector <vector <int >> c_branch;
+int size_none_pack = 1195928, byte_counter = 0;
 //vector <char> symbols;
 
 class letter {
 public:
 	int code_length;
-	char character;
-	letter(int Code_length, char Character) {
+	unsigned char character;
+	letter(int Code_length,unsigned char Character) {
 		code_length = Code_length;
 		character = Character;
 	}
@@ -53,6 +54,7 @@ Treeptr print_letter(int current_bit, Treeptr buf_node, Treeptr root, FILE* out)
 	if (buf_node->sheet)
 	{
 		fprintf(out, "%c", buf_node->key);
+		byte_counter++;
 		buf_node = root;
 	}
 	return buf_node;
@@ -61,7 +63,7 @@ Treeptr print_letter(int current_bit, Treeptr buf_node, Treeptr root, FILE* out)
 int unpacke(string input_file, string output_file) {
 	//vector <char> all_code_table(256, 0);
 	unsigned char all_code_table[256];
-	unsigned char c_byte, c_letter;	
+	unsigned char c_byte, c_letter;		
 	//input_file = "out.bin"; output_file = "out228.txt";
 	FILE *in = fopen(file_name(input_file), "rb");
 	FILE* out = fopen(file_name(output_file), "wb");
@@ -73,14 +75,14 @@ int unpacke(string input_file, string output_file) {
 	vector <letter> TEST_symbols;	
 	for (int l = 0; l < 256; l++) {
 		if (all_code_table[l] > 0) {			
-			char index = l;
+			unsigned char index = l;
 			TEST_symbols.push_back(letter(all_code_table[l], index));
 		}
 	}
 
 	sort(TEST_symbols.begin(), TEST_symbols.end(), compare);
 	code_table.resize(TEST_symbols.size());
-	code_table[0] = 0;
+	code_table[0] = 0;	
 	int last_length = TEST_symbols[0].code_length, last_code = 0;
 	for (int l = 1; l < TEST_symbols.size(); l++) {		
 		if (TEST_symbols[l].code_length == last_length) {
@@ -91,7 +93,9 @@ int unpacke(string input_file, string output_file) {
 		}
 		last_code = code_table[l];
 		last_length = TEST_symbols[l].code_length;
+		printf("%c: %d %08X\n", TEST_symbols[l].character, last_length, last_code);
 	}
+	
 	c_branch.resize(code_table.size());
 	for (int l = 0; l < code_table.size(); l++) {
 		int current_byte = code_table[l];
@@ -149,12 +153,12 @@ int unpacke(string input_file, string output_file) {
 		}
 	}
 	/*Here I already got number of bytes for decode data, from FAT ENTRY*/
-	int data_counter = 5;
+	//int data_counter = 26;
 	buf_node = root;
-	for (int i = 0; i < data_counter; i++) {
+	while (byte_counter < size_none_pack) {
 		fscanf(in, "%c", &c_byte);
 		unsigned char data_buf;
-		for (int j = 0; j < 8; j++) {
+		for (int j = 0; j < 8 && byte_counter < size_none_pack; j++) {
 			data_buf = c_byte;
 			data_buf = data_buf >> j;
 			int current_data_bit = data_buf & 1;

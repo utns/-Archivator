@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 //#include <assert.h>
 #include <cstdlib>
 #include "unpack and archive.h"
@@ -21,7 +22,28 @@ int main(int argc, char *argv[])  {
 		cout << "   Utin Nikita, Andrey Machlyarchuk" << endl << "Launch options: " << endl;
 		cout << "     '-a input_file_name output_file_name' - archive" << endl;
 		cout << "     '-x input_file output_file' - unarchive" << endl;
+		cout << "	  '-m' - archive many files" << endl;
 		return 0;
+	}
+	if (argc == 2) {
+		command = argv[2];
+		if (command == "-m") {
+			vector <string> file_names;
+			string current_name;			
+			cout << "Please write name of input file and press ENTER, to archive wrirte '/x' and press ENTER" << endl;
+			while (current_name != "/x") {
+				cin >> current_name;
+				if (current_name == "/status") {
+					cout << "Files for archive" << endl;
+					for (size_t i = 0; i < file_names.size(); i++) {
+						cout << file_names[i];
+					}
+				}
+			file_names.push_back(current_name);
+			}
+			
+						
+		}
 	}
 	if (argc != 4) {
 		cout << "incorrect input";
@@ -53,7 +75,7 @@ int main(int argc, char *argv[])  {
 		cout << "unpack" << endl;
 		cout << "input file '" << input_file << "'" << endl;
 		cout << "output file '" << output_file << "'" << endl;		
-		unpacke(input_file, output_file);
+		//unpacke(input_file, output_file);
 		//inarchive(file's in);		
 	}
 	else {
