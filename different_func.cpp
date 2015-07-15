@@ -34,3 +34,10 @@ char* file_name(string name) {
 	S[i++] = '\0';
 	return S;
 }
+
+bool letter_compare(letter i, letter j) {
+   if (i.code_length == j.code_length) {
+	   return (i.character < j.character);
+   }
+   return (i.code_length < j.code_length);
+}

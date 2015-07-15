@@ -9,27 +9,10 @@
 #include "differeent func.h"
 using namespace std;
 
-vector <vector <int>> c_branch;
+vector <vector <int> > c_branch;
  
 unsigned long long int  byte_counter = 0;
 //vector <char> symbols;
-
-class letter {
-public:
-	int code_length;
-	unsigned char character;
-	letter(int Code_length,unsigned char Character) {
-		code_length = Code_length;
-		character = Character;
-	}
-};
-
-bool compare(letter i, letter j) {
-	if (i.code_length == j.code_length) {
-		return (i.character < j.character);
-	}
-	return (i.code_length < j.code_length);
-}
 
 Treeptr print_letter(int current_bit, Treeptr buf_node, Treeptr root, FILE* out) {
 	if (current_bit == 0)//TODO: new function for out 
@@ -82,7 +65,7 @@ int unpacke(FILE* in, string output_file, unsigned long long int origin_size) {
 		}
 	}
 
-	sort(TEST_symbols.begin(), TEST_symbols.end(), compare);
+	sort(TEST_symbols.begin(), TEST_symbols.end(), letter_compare);
 	code_table.resize(TEST_symbols.size());
 	code_table[0] = 0;	
 	int last_length = TEST_symbols[0].code_length, last_code = 0;
