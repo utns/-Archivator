@@ -59,29 +59,25 @@ Treeptr print_letter(int current_bit, Treeptr buf_node, Treeptr root, FILE* out)
 }
 
 int unpacke(string input_file, string output_file) {
-	vector <char> all_code_table(256);
+	//vector <char> all_code_table(256, 0);
+	unsigned char all_code_table[256];
 	unsigned char c_byte, c_letter;	
-	//input_file = "output.txt"; output_file = "out.txt";
+	//input_file = "out.bin"; output_file = "out228.txt";
 	FILE *in = fopen(file_name(input_file), "rb");
 	FILE* out = fopen(file_name(output_file), "wb");
 	if (in == NULL) {
 		return -1;
 	}
-	for (int i = 0; i < 256; i++) {
-		fscanf(in, "%c", &c_byte);
-		if (&c_byte != 0) {
-			c_letter = i;
-			all_code_table[i] = c_byte;
-		}
-	}
+	fread(all_code_table, 1, 256, in);
 	vector <int> code_table;
 	vector <letter> TEST_symbols;	
-	for (int l = 0; l < all_code_table.size(); l++) {
+	for (int l = 0; l < 256; l++) {
 		if (all_code_table[l] > 0) {			
 			char index = l;
 			TEST_symbols.push_back(letter(all_code_table[l], index));
 		}
 	}
+
 	sort(TEST_symbols.begin(), TEST_symbols.end(), compare);
 	code_table.resize(TEST_symbols.size());
 	code_table[0] = 0;
