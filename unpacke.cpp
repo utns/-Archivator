@@ -4,12 +4,14 @@
 #include <string>
 #include <cstdlib>
 #include <algorithm>
+#include <cstring>
 #include "tree_struct.h"
 #include "differeent func.h"
 using namespace std;
 
-vector <vector <int >> c_branch;
-int size_none_pack = 1195928, byte_counter = 0;
+vector <vector <int>> c_branch;
+ 
+unsigned long long int  byte_counter = 0;
 //vector <char> symbols;
 
 class letter {
@@ -60,17 +62,17 @@ Treeptr print_letter(int current_bit, Treeptr buf_node, Treeptr root, FILE* out)
 	return buf_node;
 }
 
-int unpacke(string input_file, string output_file) {
-	//vector <char> all_code_table(256, 0);
+int unpacke(FILE* in, string output_file, unsigned long long int origin_size) {
+	c_branch.clear();
+	byte_counter = 0;
 	unsigned char all_code_table[256];
-	unsigned char c_byte, c_letter;		
-	//input_file = "out.bin"; output_file = "out228.txt";
-	FILE *in = fopen(file_name(input_file), "rb");
+	unsigned char c_byte, c_letter;			
+	//FILE *in = fopen(file_name(input_file), "rb");
 	FILE* out = fopen(file_name(output_file), "wb");
 	if (in == NULL) {
 		return -1;
-	}
-	fread(all_code_table, 1, 256, in);
+	}	
+	fread(all_code_table, 1, 256, in);	
 	vector <int> code_table;
 	vector <letter> TEST_symbols;	
 	for (int l = 0; l < 256; l++) {
@@ -89,11 +91,11 @@ int unpacke(string input_file, string output_file) {
 			code_table[l] = last_code + 1;
 		}
 		else {
-			code_table[l] = (last_code + 1) << 1;
+			code_table[l] = (last_code + 1) << (TEST_symbols[l].code_length - last_length);
 		}
 		last_code = code_table[l];
 		last_length = TEST_symbols[l].code_length;
-		printf("%c: %d %08X\n", TEST_symbols[l].character, last_length, last_code);
+		printf("%c: %d %d\n", TEST_symbols[l].character, last_length, last_code);
 	}
 	
 	c_branch.resize(code_table.size());
@@ -155,6 +157,7 @@ int unpacke(string input_file, string output_file) {
 	/*Here I already got number of bytes for decode data, from FAT ENTRY*/
 	//int data_counter = 26;
 	buf_node = root;
+	unsigned long long int size_none_pack = origin_size;
 	while (byte_counter < size_none_pack) {
 		fscanf(in, "%c", &c_byte);
 		unsigned char data_buf;

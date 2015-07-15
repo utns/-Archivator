@@ -14,6 +14,75 @@ string output_file("");
 
 using namespace std;
 
+int read_head(string input_file) {
+	bool huffman_flag = false;
+	//vector <char> all_code_table(256, 0);		
+	//input_file = "out.bin"; output_file = "out228.txt";
+
+	FILE *in = fopen(file_name(input_file), "rb");
+	//FILE* out = fopen(file_name(output_file), "wb");
+	if (in == NULL) {
+		return -1;
+	}
+	char sign[3];
+	fread(sign, sizeof(char), 3, in);
+	/*if (strcmp(sign, "UPA") == 0) {
+	cout << "Incorrect input file format" << endl;
+	return -1;
+	}*/
+	if (!(sign[0] == 'U' && sign[1] == 'P' && sign[2] == 'A')) {
+		cout << "Incorrect input file format" << endl;
+		return -1;
+	}
+	char method_id[4];
+	fread(method_id, 1, 4, in);
+	//if (strcmp(method_id, "HUFF") != 0) {
+	if (method_id[0] == 'H' && method_id[1] == 'U' && method_id[2] == 'F' && method_id[3] == 'F') {
+		huffman_flag = true;
+	}
+	else {
+		cout << "I can't work with this algo, it is temporarily" << endl;
+		return -1;
+	}
+	bool solid_stream_flag;
+	fread(&solid_stream_flag, sizeof(solid_stream_flag), 1, in);
+	if (solid_stream_flag) {
+		cout << "I cant  work with solid stream data, it is temporarily" << endl;
+		return -1;
+	}
+	unsigned short int files_count;
+	fread(&files_count, sizeof(files_count), 1, in);
+	vector <string> files_name(files_count, "");
+	vector <unsigned long long int> files_size(files_count, 0);
+	unsigned char fn_len;
+	for (int i = 0; i < files_count; i++) {
+		fread(&fn_len, sizeof(fn_len), 1, in);
+		fn_len++;
+		char* file_name = (char*)malloc(fn_len * sizeof(char));
+		fread(file_name, sizeof(char), fn_len, in);
+		for (int j = 0; j < fn_len; j++) {
+			files_name[i].push_back(file_name[j]);
+		}
+		unsigned long long int pack_size;
+		fread(&pack_size, sizeof(pack_size), 1, in);
+		unsigned long long int original_size;
+		fread(&original_size, sizeof(original_size), 1, in);
+		files_size[i] = original_size;
+		/*unsigned char file_attr;
+		fread(&file_attr, sizeof(file_attr), 1, in);
+		if (file_attr != 0) {
+		return -1;
+		}
+		int file_date;
+		fread(&file_date, sizeof(file_date), 1, in);*/
+	}
+	for (int i = 0; i < files_count; i++) {
+		unpacke(in, files_name[i], files_size[i]);
+	}
+	return 0;
+}
+
+
 int archive_all_files()
 {
 //	vector <string> input_file_names;
@@ -96,6 +165,12 @@ int main(int argc, char *argv[])  {
 			return 0;
 		}
 	}
+	if (argc == 3) {
+		input_file = argv[2];
+		command = argv[1];
+		read_head(input_file);
+		return 0;
+	}
 	/*if (argc == 2) {
 		command = argv[2];
 		if (command == "-m") {
@@ -135,7 +210,7 @@ int main(int argc, char *argv[])  {
 		cout << "input file '" << input_file << "'" << endl;
 		cout << "output file '" << output_file << "'" << endl;		
 	} else*/
-	if (command == "-x") {
+	/*if (command == "-x") {
 		int result = unpacke(input_file, output_file);
 		if (result == BAD_FILE_NAME) {
 			cout << "Input file not found";
@@ -149,7 +224,7 @@ int main(int argc, char *argv[])  {
 	}
 	else {
 		cout << "'" << command << "'" << " unknown comand";
-	}
+	}*/
 	//TODO checking for file opening	
 	return 0;	
 }
