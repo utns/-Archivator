@@ -153,3 +153,26 @@ int unpacke(FILE* in, string output_file, unsigned long long int origin_size) {
 	}
 	return 0;	
 }
+
+int lz_unpacke(FILE* in, string output_file, unsigned long long int packed_size) {
+	FILE* out = fopen(file_name(output_file), "wb");	
+	unsigned short int current_number; 
+	unsigned char current_character;	
+	vector <string> code_symbols(1, "");	
+	for (int i = 0; i < packed_size / 3; i++) {
+		fread(&current_number, sizeof(current_number), 1, in);
+		fread(&current_character, sizeof(current_character), 1, in);		
+		string current_str = code_symbols[current_number];
+		for (int j = 0; j < current_str.size(); j++) {
+			fprintf(out, "%c", current_str[j]);
+		}		
+		fprintf(out, "%c", current_character);
+		current_str += current_character;				
+		code_symbols.push_back(current_str);
+		if (code_symbols.size() == 65535) {
+			code_symbols.clear();
+			code_symbols.push_back("");
+		}
+	}		
+	return 0;
+}

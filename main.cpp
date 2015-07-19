@@ -13,9 +13,11 @@ vector <string> input_file_names;
 string output_file("");
 
 using namespace std;
+bool lz_al;
 
 int read_head(string input_file) {
 	bool huffman_flag = false;
+	bool lz_algo = false;
 	FILE *in = fopen(file_name(input_file), "rb");	
 	if (in == NULL) {
 		cout << "File not found" << endl;
@@ -31,13 +33,16 @@ int read_head(string input_file) {
 		cout << "Incorrect input file format" << endl;
 		return -1;
 	}
-	char method_id[4];
+	char method_id[5];
 	fread(method_id, 1, 4, in);
-	//if (strcmp(method_id, "HUFF") != 0) {
-	if (method_id[0] == 'H' && method_id[1] == 'U' && method_id[2] == 'F' && method_id[3] == 'F') {
+	method_id[4] = '\0';
+	if (strcmp(method_id, "HUFF") == 0) {
+	//if (method_id[0] == 'H' && method_id[1] == 'U' && method_id[2] == 'F' && method_id[3] == 'F') {
 		huffman_flag = true;
 	}
-	else {
+	else if (strcmp(method_id, "LZAL") == 0) {
+		lz_algo = true;
+	} else {
 		cout << "I can't work with this algo, it is temporarily" << endl;
 		return -1;
 	}
@@ -51,6 +56,7 @@ int read_head(string input_file) {
 	fread(&files_count, sizeof(files_count), 1, in);
 	vector <string> files_name(files_count, "");
 	vector <unsigned long long int> files_size(files_count, 0);
+	vector <unsigned long long int> pack_files_size(files_count, 0);
 	unsigned char fn_len;
 	for (int i = 0; i < files_count; i++) {
 		fread(&fn_len, sizeof(fn_len), 1, in);
@@ -65,6 +71,7 @@ int read_head(string input_file) {
 		unsigned long long int original_size;
 		fread(&original_size, sizeof(original_size), 1, in);
 		files_size[i] = original_size;
+		pack_files_size[i] = pack_size;
 		/*unsigned char file_attr;
 		fread(&file_attr, sizeof(file_attr), 1, in);
 		if (file_attr != 0) {
@@ -73,9 +80,17 @@ int read_head(string input_file) {
 		int file_date;
 		fread(&file_date, sizeof(file_date), 1, in);*/
 	}
-	for (int i = 0; i < files_count; i++) {
-		unpacke(in, files_name[i], files_size[i]);
+	if (lz_algo) {
+		for (int i = 0; i < files_count; i++) {
+			lz_unpacke(in, files_name[i], pack_files_size[i]);
+		}
 	}
+	else {
+		for (int i = 0; i < files_count; i++) {
+			unpacke(in, files_name[i], files_size[i]);
+		}
+	}
+	
 	return 0;
 }
 
@@ -85,7 +100,12 @@ int archive_all_files()
 	vector <long int> FAT_offset;
 	FILE *output = fopen(file_name(output_file), "wb");
 	fprintf(output, "UPA");
-	fprintf(output, "HUFF");
+	if (lz_al) {
+		fprintf(output, "LZAL");
+	}
+	else {
+		fprintf(output, "HUFF");
+	}	
 	bool is_solid = false;
 	fwrite(&is_solid, sizeof(is_solid), 1, output);
 	unsigned short int input_files_count = input_file_names.size();
@@ -104,6 +124,9 @@ int archive_all_files()
 	for (size_t i = 0; i < input_file_names.size(); ++i)
 	{
 		unsigned long long int packsize, origsize;
+		if (lz_al) {
+			LZ_archive(input_file_names[i], output, &packsize, &origsize);
+		} else 
 		if (archive(input_file_names[i], output, &packsize, &origsize) == -1)
 		{
 			break;
@@ -119,7 +142,8 @@ int archive_all_files()
 }
 
 int main(int argc, char *argv[])  {		
-	string input_file(""), command("");
+	string input_file(""), command(""), key("");
+	lz_al = false;
 	if (argc == 1) {
 		cout << "   -Archivator" << endl;
 		cout << "   Utin Nikita, Andrey Machlyarchuk" << endl << "Launch options: " << endl;
@@ -129,18 +153,31 @@ int main(int argc, char *argv[])  {
 	} else
 	if (argc >= 4) {
 		command = argv[1];
+		key = argv[2];
+		if (key == "-lz") {
+			lz_al = true;
+		}
 		if (command == "-a") {
 			int i;
-			for (i = 2; i < argc - 1; i++) {
-				input_file_names.push_back(argv[i]);
+			if (lz_al) {
+				cout << "LZ algo key used" << endl;
+				for (i = 3; i < argc - 1; i++) {
+					input_file_names.push_back(argv[i]);
+				}
 			}
+			else {
+				for (i = 2; i < argc - 1; i++) {
+					input_file_names.push_back(argv[i]);
+				}
+			}			
 			output_file = argv[i++];
 			cout << "Input files:" << endl;
 			for (i = 0; i < input_file_names.size(); i++) {
 				cout << input_file_names[i] << endl;
 			}
 			cout << "Output file:" << endl;
-			cout << output_file << endl;
+			cout << output_file << endl;			
+			//return 0; 
 			archive_all_files();
 			/*Func called*/
 			return 0;
@@ -154,6 +191,8 @@ int main(int argc, char *argv[])  {
 		input_file = argv[2];
 		command = argv[1];
 		if (command == "-x") {
+			FILE* input = fopen(file_name(input_file), "rb");
+			//lz_unpacke(input, "out.txt", 0);
 			read_head(input_file);
 		}
 		else if (command == "-a") {

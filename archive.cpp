@@ -241,4 +241,70 @@ int archive(string input_file, FILE *output, unsigned long long int *packsize, u
 	return 0;
 }
 
+vector <string> LZW_code_table;
+
+int find(string str)
+{
+	for (int i = 0; i < LZW_code_table.size(); ++i)
+	{
+		if (LZW_code_table[i] == str)
+		{
+			return i;
+			break;
+		}
+	}
+	return 0;
+}
+
+typedef struct node node;
+
+
+int LZ_archive(string input_file, FILE* output, unsigned long long int *packsize, unsigned long long int *origsize)
+{
+	LZW_code_table.clear();
+	LZW_code_table.push_back("");
+	FILE *input = fopen(file_name(input_file), "rb");
+	fseek(input, 0, SEEK_END);
+	long int unpack_size = ftell(input);
+	fseek(input, 0, SEEK_SET);
+	*origsize = (unsigned long long int)unpack_size;
+	char c_in;
+	string buf_str;
+	unsigned short int prev_index = 0;
+	*packsize = 0;
+	for (int i = 0; i < unpack_size; ++i)
+	{
+		fscanf(input, "%c", &c_in);
+		unsigned short int cur_index = (unsigned short int)find(buf_str + c_in);
+		if (!cur_index)
+		{
+			LZW_code_table.push_back(buf_str + c_in);
+			if (LZW_code_table.size() == 65535)
+			{
+				prev_index = 0;
+				LZW_code_table.clear();
+				LZW_code_table.push_back("");
+			}
+			fwrite(&prev_index, sizeof(prev_index), 1, output);
+			fprintf(output, "%c", c_in);
+			(*packsize) += 3;
+			buf_str.clear();
+			prev_index = 0;
+		}
+		else
+		{
+			buf_str += c_in;
+			prev_index = cur_index;
+		}
+	}
+	unsigned short int cur_index = (unsigned short int)find(buf_str);
+	if (buf_str.size() > 0)
+	{
+		buf_str.erase(buf_str.begin() + buf_str.size() - 1);
+		fwrite(&cur_index, sizeof(cur_index), 1, output);
+		fprintf(output, "%c", c_in);
+		(*packsize) += 3;
+	}
+	return 0;
+}
 
