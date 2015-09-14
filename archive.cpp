@@ -264,6 +264,11 @@ int LZ_archive(string input_file, FILE* output, unsigned long long int *packsize
 	LZW_code_table.clear();
 	LZW_code_table.push_back("");
 	FILE *input = fopen(file_name(input_file), "rb");
+	if (input == NULL)
+	{
+		cout << "File '" << input_file << "' not found." << endl;
+		return -1;
+	}
 	fseek(input, 0, SEEK_END);
 	long int unpack_size = ftell(input);
 	fseek(input, 0, SEEK_SET);
