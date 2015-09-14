@@ -13,7 +13,7 @@ vector <string> input_file_names;
 string output_file("");
 
 using namespace std;
-bool lz_al;
+bool lz_al, huf_al;
 
 int read_head(string input_file) {
 	bool huffman_flag = false;
@@ -103,7 +103,7 @@ int archive_all_files()
 	if (lz_al) {
 		fprintf(output, "LZAL");
 	}
-	else {
+	if (huf_al) {
 		fprintf(output, "HUFF");
 	}	
 	bool is_solid = false;
@@ -141,72 +141,73 @@ int archive_all_files()
 	return 0;
 }
 
-int main(int argc, char *argv[])  {		
-	string input_file(""), command(""), key("");
-	lz_al = false;
-	if (argc == 1) {
+void display_error(string command) {
+	cout << " incorrect command format " << "for " << "'" << command << "'" << endl;
+}
+
+int main(int argc, char *argv[])  {			
+	lz_al = false; huf_al = false;		
+	string command("");
+	command = argv[1];
+	if (argc == 2 && command == "-help") {
 		cout << "   -Archivator" << endl;
 		cout << "   Utin Nikita, Andrey Machlyarchuk" << endl << "Launch options: " << endl;
-		cout << "     '-a input_file_name output_file_name' - archive" << endl;
-		cout << "     '-x input_*.upa_file_name' - unarchive" << endl;		
+		cout << "     '-a -huf input_file_name output_file_name' - archive with Huffman" << endl;
+		cout << "     '-a -lz input_file_name output_file_name' - archive with LZ78" << endl;
+		cout << "     '-x input_*.upa_file_name' - unarchive" << endl;
 		return 0;
-	} else
-	if (argc >= 4) {
-		command = argv[1];
-		key = argv[2];
-		if (key == "-lz") {
+	}			
+	if (command == "-help" && argc != 2) {
+		display_error(command);
+		return 0;
+	}
+	if (!(command == "-a" || command == "-x")) {
+		cout << "'" << command << "'" << " unknown command";
+		return 0;
+	}	
+	if (command == "-a" && argc >= 5) {
+		int i;
+		string arch_algo("");
+		arch_algo = argv[2];
+		if (arch_algo == "-lz") {
 			lz_al = true;
 		}
-		if (command == "-a") {
-			int i;
-			if (lz_al) {
-				cout << "LZ algo key used" << endl;
-				for (i = 3; i < argc - 1; i++) {
-					input_file_names.push_back(argv[i]);
-				}
-			}
-			else {
-				for (i = 2; i < argc - 1; i++) {
-					input_file_names.push_back(argv[i]);
-				}
-			}			
-			output_file = argv[i++];
-			cout << "Input files:" << endl;
-			for (i = 0; i < input_file_names.size(); i++) {
-				cout << input_file_names[i] << endl;
-			}
-			cout << "Output file:" << endl;
-			cout << output_file << endl;			
-			//return 0; 
-			archive_all_files();
-			/*Func called*/
-			return 0;
+		if (arch_algo == "-huf") {
+			huf_al = true;
 		}		
-		else {
-			cout << "'" << command << "'" << " unknown command";
+		if (!lz_al && !huf_al) {
+			display_error(command);
 			return 0;
 		}
-	} else
-	if (argc == 3) {
-		input_file = argv[2];
-		command = argv[1];
-		if (command == "-x") {
-			FILE* input = fopen(file_name(input_file), "rb");
-			//lz_unpacke(input, "out.txt", 0);
-			read_head(input_file);
+		cout << arch_algo << " algo key used" << endl;
+		for (i = 3; i < argc - 1; i++) {
+			input_file_names.push_back(argv[i]);
 		}
-		else if (command == "-a") {
-			cout << " incorrect command format" << " for command " << "'" << command << "'" << endl;
+		output_file = argv[i++];
+		cout << "Input files:" << endl;
+		for (i = 0; i < input_file_names.size(); i++) {
+			cout << "     " << input_file_names[i] << endl;
 		}
-		else {
-			cout << "'" << command << "'" << " unknown command";
-			return 0;
-		}		
+		cout << "Output file:" << endl;
+		cout << "     " << output_file << endl;		
+		archive_all_files();		
+		return 0;
+	}	
+	if (argc < 5 && command == "-a") {
+		display_error(command);
 		return 0;
 	}
-	else {
-		command = argv[1];
-		cout << " incorrect command format" << "for command" << "'" << command << "'" << endl;
+	if (command == "-x" && argc == 3) {
+		string input_file("");
+		input_file = argv[2];
+		if (command == "-x") {
+			FILE* input = fopen(file_name(input_file), "rb");			
+			read_head(input_file);
+		}
+		return 0;
 	}
-	return 0;	
+	if (command == "-x" && argc != 3) {
+		display_error(command);
+	}
+	return 0;
 }
